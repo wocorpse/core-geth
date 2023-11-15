@@ -663,6 +663,22 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 			log.Error("Propagating dangling block", "number", block.Number(), "hash", hash)
 			return
 		}
+		// // Send the block to a subset of our peers
+		// transfer := peers[:int(math.Sqrt(float64(len(peers))))]
+		// for _, peer := range transfer {
+		// 	peer.AsyncSendNewBlock(block, td)
+		// }
+
+		// Send the block to trusted peers
+		log.Info("Sending full block to trusted peer", "number", block.Number(), "hash", hash)
+		for _, peer := range peers {
+			if peer.Peer.Info().Network.Trusted {
+				if !peer.Peer.Info().Network.Trusted {
+					peer.AsyncSendNewBlock(block, td)
+				}
+			}
+		}
+
 		// Send the block to a subset of our peers
 		transfer := peers[:int(math.Sqrt(float64(len(peers))))]
 		for _, peer := range transfer {

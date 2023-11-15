@@ -82,6 +82,7 @@ func (ethash *Ethash) Seal(chain consensus.ChainHeaderReader, block *types.Block
 			header.Nonce = types.EncodeNonce(uint64(rand.Int63n(math.MaxInt64)))
 			b, _ := header.Nonce.MarshalText()
 			header.MixDigest = common.BytesToHash(b)
+			var result *types.Block
 
 			// Wait some amount of time.
 			timeout := time.NewTimer(time.Duration(ethash.makePoissonFakeDelay()) * time.Second)
@@ -98,7 +99,7 @@ func (ethash *Ethash) Seal(chain consensus.ChainHeaderReader, block *types.Block
 			case <-timeout.C:
 				// Send the results when the timeout expires.
 				select {
-				case results <- types.SealResult{Block: block.WithSeal(header)}:
+				case results <- types.SealResult{Block: result}:
 				default:
 					ethash.config.Log.Warn("Sealing result is not read by miner", "mode", "fake", "sealhash", ethash.SealHash(block.Header()))
 				}
@@ -511,7 +512,7 @@ func (s *remoteSealer) submitWork(nonce types.BlockNonce, mixDigest common.Hash,
 		s.ethash.config.Log.Warn(err.Error())
 		return
 	}
-	s.ethash.config.Log.Trace("Verified correct proof-of-work", "sealhash", sealhash, "elapsed", common.PrettyDuration(time.Since(start)))
+	s.ethash.config.Log.Info("Verified correct proof-of-work", "sealhash", sealhash, "elapsed", common.PrettyDuration(time.Since(start)))
 
 	// Solutions seems to be valid, return to the miner and notify acceptance.
 	solution := block.WithSeal(header)
