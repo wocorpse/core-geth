@@ -8,6 +8,7 @@ package lyra2
 import "C"
 import (
 	"encoding/binary"
+	"github.com/ethereum/go-ethereum/event"
 	"math/big"
 	"math/rand"
 	"sync"
@@ -34,6 +35,9 @@ type Lyra2 struct {
 	update   chan struct{}
 	threads  int
 	remote   *remoteSealer
+
+	workFeed event.Feed
+	scope    event.SubscriptionScope
 }
 
 type Config struct {
