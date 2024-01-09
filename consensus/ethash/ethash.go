@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/event"
 	"math"
 	"math/big"
 	"math/rand"
@@ -591,6 +592,9 @@ type Ethash struct {
 
 	lock      sync.Mutex // Ensures thread safety for the in-memory caches and mining fields
 	closeOnce sync.Once  // Ensures exit channel will not be closed twice.
+
+	workFeed event.Feed
+	scope    event.SubscriptionScope
 }
 
 // New creates a full sized ethash PoW scheme and starts a background thread for
@@ -833,6 +837,12 @@ func (ethash *Ethash) APIs(chain consensus.ChainHeaderReader) []rpc.API {
 		{
 			Namespace: "ethash",
 			Service:   &API{ethash},
+		},
+		{
+			Namespace: "parity",
+			Version:   "1.0",
+			Service:   &API{ethash},
+			Public:    true,
 		},
 	}
 }
